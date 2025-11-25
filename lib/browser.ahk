@@ -483,6 +483,10 @@ class Browser {
       this.Source := "Vicipaedia", this.Title := RegExReplace(this.Title, " - Vicipaedia$")
       if (GetFullPage && GetDate && (FullPageText || (FullPageText := this.GetFullPage(RestoreClip))))
         RegExMatch(FullPageText, "Novissima mutatio die (.*?) hora", v), this.Date := v1
+    } else if (this.Title ~= " - Βικιπαίδεια$") {
+      this.Source := "Βικιπαίδεια", this.Title := RegExReplace(this.Title, " - Βικιπαίδεια$")
+      if (GetFullPage && GetDate && (FullPageText || (FullPageText := this.GetFullPage(RestoreClip))))
+        RegExMatch(FullPageText, "Τελευταία τροποποίηση .*?, (.*?)\.", v), this.Date := v1
     } else if (IfContains(this.Url, "it.wikipedia.org")) {
       this.Source := "Wikipedia", this.Title := RegExReplace(this.Title, " - Wikipedia$")
       if (GetFullPage && GetDate && (FullPageText || (FullPageText := this.GetFullPage(RestoreClip))))
@@ -647,6 +651,22 @@ class Browser {
       this.GetGuiaBrowser()
       if (Title ~= "_[^_]+ - 喜马拉雅$") {
         try TimeStamp := guiaBrowser.FindFirstByName("^\d{2}:\d{2}:\d{2}$",, "regex").Name
+      } else if (Title ~= " - YouTube$") {
+        try TimeStamp := guiaBrowser.FindFirstByName("(\d+ Hours )?(\d+ Minutes )?\d+ Seconds of (\d+ Hours )?(\d+ Minutes )?\d+ Seconds",, "regex").Name
+        pattern := "O)(?:(\d+) Hours )?(?:(\d+) Minutes )?(\d+) Seconds of (?:(\d+) Hours )?(?:(\d+) Minutes )?(\d+) Seconds"
+        RegExMatch(TimeStamp, pattern, m)
+        ; First period
+        h1 := m[1] ? m[1] : 0
+        m1 := m[2] ? m[2] : 0
+        s1 := m[3] ? m[3] : 0
+        ; Second period
+        h2 := m[4] ? m[4] : 0
+        m2 := m[5] ? m[5] : 0
+        s2 := m[6] ? m[6] : 0
+
+        t1 := Format("{:01}:{:02}:{:02}", h1, m1, s1)
+        t2 := Format("{:01}:{:02}:{:02}", h2, m2, s2)
+        TimeStamp := (t1 == t2) ? "0:00" : t1
       } else {
         try TimeStamp := guiaBrowser.FindFirstByName("^(\d{1,2}:)?\d{1,2}:\d{1,2}$",, "regex").Name
       }

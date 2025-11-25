@@ -1257,7 +1257,8 @@ SMTagEntered:
       }
       Ref := "#Comment: " . Comment . "`n" . Ref
       ControlSetText, TMemo1, % Ref
-      ControlSend, TMemo1, {Ctrl Down}{Enter}{Ctrl Up}  ; submit
+      While (WinExist())
+        ControlSend, TMemo1, {Ctrl Down}{Enter}{Ctrl Up}  ; submit
       WinWaitClose
       WinWait, % "ahk_class TChoicesDlg ahk_pid " . pidSM,, 0.7
       if (!ErrorLevel) {
@@ -1295,7 +1296,8 @@ SMUntag:
         Ref := RegExReplace(Ref, "#Comment: .*")
       }
       ControlSetText, TMemo1, % Ref
-      ControlSend, TMemo1, {Ctrl Down}{Enter}{Ctrl Up}  ; submit
+      While (WinExist())
+        ControlSend, TMemo1, {Ctrl Down}{Enter}{Ctrl Up}  ; submit
       WinWaitClose
       WinWait, % "ahk_class TChoicesDlg ahk_pid " . pidSM,, 0.7
       if (!ErrorLevel) {

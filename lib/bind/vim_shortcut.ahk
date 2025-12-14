@@ -414,6 +414,7 @@ MarkInHTMLCompAgain:
     WaitCaretMove(x, y)
   Clip(NewText,, false, "sm")
   Send {Esc}
+  SM.MarkExtDep()
   if (IfContains(A_ThisLabel, "^+!"))
     SM.Learn(false,, true)
   Clipboard := ClipSaved

@@ -612,6 +612,7 @@ ImportFile:
       FileMove, % FilePath, % StrReplace(FilePath, FileName, "IMPORTED_" . FileName)
   }
   SM.AskPrio()
+  SM.MarkExtDep()
 return
 
 Settings:
@@ -1216,7 +1217,9 @@ MarkAsOnlineProgress:
   }
   if (!FirstText)
     Clip("<SPAN class=Highlight>SMVim: Use online video progress</SPAN>",,, "sm")
-  SM.ExitText(), Vim.State.SetMode("Vim_Normal")
+  SM.ExitText()
+  SM.MarkExtDep()
+  Vim.State.SetMode("Vim_Normal")
 return
 
 Tag:

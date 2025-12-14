@@ -227,7 +227,7 @@ SMCtrlN:
     SM.WaitTextFocus()
     SM.WaitFileLoad()
     if (A_ThisLabel == "^n") {
-      SM.SetElParam(Browser.Title,, "YouTube")
+      SM.SetElParam(Browser.Title,, "YouTube", "", false, "extdep")
       SM.Reload(), Browser.Clear()
       SetToolTip("Processing finished.")
     }
@@ -700,6 +700,9 @@ SMSyncTimeReturn:
       SetToolTip("Time stamp in script component set as " . Browser.TimeStamp)
     }
   }
+
+  if (A_ThisLabel != "SMSyncTimeReturn" && (EditHTML || EditScript))
+    SM.MarkExtDep(wSMElWind)
 
   if (IfContains(A_ThisLabel, "^+!"))
     SM.Learn(false, true, true, wSMElWind)

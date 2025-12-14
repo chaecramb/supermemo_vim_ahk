@@ -589,7 +589,8 @@ SMImportButtonImport:
   }
 
   ; All SM operations here are handled in the background
-  SM.SetElParam((IWB ? "" : Browser.Title), Prio, (SMCtrlNYT ? "YouTube" : ""), (ChangeBackConcept ? ChangeBackConcept : ""))
+  ExtDep := (OnlineEl || SMCtrlNYT || IsVideoOrAudioSite)
+  SM.SetElParam((IWB ? "" : Browser.Title), Prio, (SMCtrlNYT ? "YouTube" : ""), (ChangeBackConcept ? ChangeBackConcept : ""), false, (ExtDep ? "extdep" : ""))
 
   if (DupChecked)
     SM.ClearHighlight()

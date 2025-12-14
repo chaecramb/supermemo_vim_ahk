@@ -9,6 +9,7 @@ This page defines what those markers are, where they are stored, and the rules t
 - Markers are written into the element's **first HTML component**.
 - The marker must be the **first content line** in that HTML component (top of the HTML).
 - If you edit the HTML and move the marker below other content, the script may not detect it reliably.
+- When a marker is written/updated by the hotkeys in this repo, the script also sets the element’s **Properties → Comment** field to `extdep` (so you can filter “external dependency” items).
 
 ## Marker types
 
@@ -35,4 +36,3 @@ If the script prompts "Go to source and try again?":
 
 - Use a "source element" whose first HTML component is empty (or contains only the SMVim marker).
 - Or use import/IWB to create a fresh element, then keep that as the source element for subsequent extracts/markers.
-

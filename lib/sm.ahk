@@ -729,21 +729,21 @@ class SM {
     }
   }
 
-  SetElParam(Title:="", Prio:="", Template:="", Group:="", CheckGroup:=false) {
+  SetElParam(Title:="", Prio:="", Template:="", Group:="", CheckGroup:=false, Comment:="", wSMElWind:="ahk_class TElWind") {
     Critical
-    if ((Title == "") && !(Prio >= 0) && !Template && !Group) {
+    if ((Title == "") && !(Prio >= 0) && !Template && !Group && (Comment == "")) {
       return true
-    } else if ((Title != "") && !(Prio >= 0) && !Template && !Group) {
+    } else if ((Title != "") && !(Prio >= 0) && !Template && !Group && (Comment == "")) {
       this.SetTitle(Title)
       return true
-    } else if ((Title == "") && (Prio >= 0) && !Template && !Group) {
+    } else if ((Title == "") && (Prio >= 0) && !Template && !Group && (Comment == "")) {
       this.SetPrio(Prio)
       return true
     }
 
     ; Launch element parameter window
-    w := "ahk_class TElParamDlg ahk_pid " . WinGet("PID", "ahk_class TElWind")
-    this.PostMsg(708, true)
+    w := "ahk_class TElParamDlg ahk_pid " . WinGet("PID", wSMElWind)
+    this.PostMsg(708, true, wSMElWind)
     WinWait, % w
 
     if (Template && !(ControlGetText("Edit1") = Template)) {
@@ -757,11 +757,22 @@ class SM {
     if (Group && !(ControlGetText("Edit2") = Group))
       this.SetText("Edit2", Group,, CheckGroup)
 
+    if (Comment != "")
+      this.SetText("TMemo1", Comment,, false)
+
     ; Submit
     ControlFocus, TMemo1  ; needed, otherwise the window won't close sometimes
     while (WinExist(w))
       ControlSend, TMemo1, {Enter}
     return true
+  }
+
+  SetElComment(Comment, wSMElWind:="ahk_class TElWind") {
+    return this.SetElParam("", "", "", "", false, Comment, wSMElWind)
+  }
+
+  MarkExtDep(wSMElWind:="ahk_class TElWind") {
+    return this.SetElComment("extdep", wSMElWind)
   }
 
   IsNavWnd() {  ; navigation window

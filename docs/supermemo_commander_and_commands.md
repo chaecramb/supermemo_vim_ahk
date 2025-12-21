@@ -56,6 +56,7 @@ When focused on the element window (`TElWind`), you’ll typically see commands 
 | Command | What it does |
 |---|---|
 | `ImportFile` | Creates/updates an element for a local file using the `binary` template (source element for PDFs/EPUB/videos). |
+| `ImportCode` | Creates a new element using `CodeTemplate` and writes a script URL that opens a local code file in VS Code. |
 | `OpenInAcrobat` | Opens the attached file/path in Acrobat (useful for PDF workflows). |
 | `NukeHTML` | Aggressively rewrite/clean the underlying HTML source file (the “nuke” variant removes many `class=...` attributes; see `docs/supermemo_html_maintenance.md`). |
 | `ReformatVocab` | Runs a vocabulary reformat routine (collection-specific). |

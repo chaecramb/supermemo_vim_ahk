@@ -59,7 +59,7 @@ Return
   if (WinActive("ahk_class TElWind") || WinActive("ahk_class TContents")) {
     List := "SetConceptHook|MemoriseChildren|" . List
     if (WinActive("ahk_class TElWind")) {
-      List := "NukeHTML|ReformatVocab|ImportFile|EditReference|LinkToPreviousElement"
+      List := "NukeHTML|ReformatVocab|ImportFile|ImportCode|EditReference|LinkToPreviousElement"
             . "|OpenInAcrobat|CalculateTodaysPassRate|AllLapsesToday"
             . "|ExternaliseRegistry|Comment|Tag|Untag|" . List
       if (SM.IsOnline(, -1))
@@ -573,8 +573,136 @@ ZLibrary:
 return
 
 AnnasArchive:
-  if (Text := FindSearchIB("Anna’s Archive", "Search:"))
+  if (Text := FindSearchIB("Anna's Archive", "Search:"))
     Run, % "https://annas-archive.org/search?q=" . EncodeDecodeURI(Text)
+return
+
+ImportCode:
+  Vim.State.SetMode("Vim_Normal")
+  if (!WinExist("ahk_class TElWind")) {
+    SetToolTip("Please open SuperMemo and try again.")
+    return
+  }
+  if (WinExist("ahk_id " . SMImportCodeGuiHwnd)) {
+    WinActivate
+    return
+  }
+
+  CodePrevConcept := SM.GetDefaultConcept()
+  CodeCollName := SM.GetCollName()
+  CodeChangeConcept := false
+
+  CodeFilePath := FileSelectFile("1", "", "Select a code file", "All files (*.*)")
+  if (!CodeFilePath)
+    return
+
+  SplitPath, CodeFilePath, CodeFileName, CodeFileDir, CodeFileExt, CodeFileNameNoExt
+
+  SetDefaultKeyboard(0x0409)  ; English-US
+  Gui, SMImportCode:Add, Text,, % "Current collection: " . CodeCollName
+  Gui, SMImportCode:Add, Text,, % "File: " . CodeFilePath
+  Gui, SMImportCode:Add, Text,, &Priority:
+  Gui, SMImportCode:Add, Edit, vCodePrio w280
+  Gui, SMImportCode:Add, Text,, Concept &group:
+  CodeConceptList := CodePrevConcept . "||Online|Sources|ToDo"
+  Gui, SMImportCode:Add, ComboBox, vCodeConcept gAutoComplete w280, % CodeConceptList
+  Gui, SMImportCode:Add, Text,, &Tags (without # and use `; to separate):
+  Gui, SMImportCode:Add, Edit, vCodeTags w280
+  Gui, SMImportCode:Add, Text,, Reference c&omment:
+  Gui, SMImportCode:Add, Edit, vCodeRefComment w280
+  Gui, SMImportCode:Add, Button, default, &Import
+  Gui, SMImportCode:Show,, SuperMemo Import Code
+  Gui, SMImportCode:+HwndSMImportCodeGuiHwnd
+return
+
+SMImportCodeButtonImport:
+  KeyWait Enter
+  KeyWait I
+  Gui, Submit
+  Gui, Destroy
+
+  if (CodePrio ~= "^\.")
+    CodePrio := "0" . CodePrio
+
+  if (CodeConcept && (CodeConcept != CodePrevConcept)) {
+    if (!SM.SetDefaultConcept(CodeConcept)) {
+      SetToolTip("Concept not found.")
+      Goto SMImportCodeReturn
+    }
+    CodeChangeConcept := true
+  }
+
+  CodeNormPath := StrReplace(CodeFilePath, "\", "/")
+  CodeRefUrl := "file:///" . CodeNormPath
+  CodeRefUrl := RegExReplace(CodeRefUrl, "^file:\/\/\/", "file://")  ; SuperMemo converts file:/// to file://
+  CodeVscodeUri := "vscode://file/" . CodeNormPath
+  CodeScriptUrl := EncodeDecodeURI(CodeVscodeUri, true, false)
+
+  CodeTitle := CodeFileName ? CodeFileName : CodeFileNameNoExt
+
+  CodeTagsComment := ""
+  if (CodeTags) {
+    CodeTagsComment := StrReplace(Trim(CodeTags), " ", "_")
+    CodeTagsComment := "#" . StrReplace(CodeTagsComment, ";", " #")
+  }
+  if (CodeRefComment && CodeTagsComment)
+    CodeTagsComment := " " . CodeTagsComment
+  CodeRefComment := Trim(Trim(CodeRefComment) . CodeTagsComment)
+
+  SM.CloseMsgDialog()
+
+  PrevSMTitle := WinGetTitle("ahk_class TElWind")
+  SM.AltN()
+  WinActivate, ahk_class TElWind
+  SM.WaitTextFocus()
+  WinWaitTitleChange(PrevSMTitle, "ahk_class TElWind")
+
+  SM.SetElParam(CodeTitle, CodePrio, "CodeTemplate", "", false, "extdep")
+
+  SM.EditFirstQuestion()
+  SM.WaitTextFocus()
+
+  Critical
+  pidSM := WinGet("PID", "ahk_class TElWind")
+  Send ^t{f9}{Enter}
+  WinWait, % wScript := "ahk_class TScriptEditor ahk_pid " . pidSM,, 3
+  if (ErrorLevel) {
+    SetToolTip("Script component not found.")
+    Goto SMImportCodeReturn
+  }
+
+  ; ControlSetText to "rl" first than send one "u" is needed to update the editor,
+  ; thus prompting it to ask to save on exiting
+  ControlSetText, TMemo1, % "rl " . CodeScriptUrl, % wScript
+  ControlSend, TMemo1, {text}u, % wScript
+  ControlSend, TMemo1, {Esc}, % wScript
+  WinWait, % "ahk_class TMsgDialog ahk_pid " . pidSM
+  ControlSend, ahk_parent, {Enter}
+  WinWaitClose
+  WinWaitClose, % wScript
+
+  Browser.Clear()
+  Browser.Url := CodeRefUrl
+  Browser.Title := CodeTitle
+  if (CodeRefComment)
+    Browser.Comment := CodeRefComment
+  Gosub SMSetLinkFromClipboard
+
+  if (CodeTags)
+    SM.LinkConcepts(StrSplit(CodeTags, ";"))
+
+  Goto SMImportCodeReturn
+
+SMImportCodeGuiEscape:
+SMImportCodeGuiClose:
+  Gui, Destroy
+  Goto SMImportCodeReturn
+
+SMImportCodeReturn:
+  if (CodeChangeConcept)
+    SM.SetDefaultConcept(CodePrevConcept)
+  CodeChangeConcept := false
+  Vim.State.SetMode("Vim_Normal")
 return
 
 ImportFile:
